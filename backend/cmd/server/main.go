@@ -19,6 +19,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/handler"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/llmtelemetry"
 	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/setup"
 	"github.com/Wei-Shaw/sub2api/internal/web"
@@ -147,6 +148,12 @@ func runMainServer() {
 		Version:   Version,
 		BuildType: BuildType,
 	}
+
+	shutdownTelemetry, telemetryErr := llmtelemetry.InitFromEnv(context.Background())
+	if telemetryErr != nil {
+		log.Fatalf("Invalid LLM telemetry configuration: %v", telemetryErr)
+	}
+	defer llmtelemetry.ShutdownTimeout(shutdownTelemetry)
 
 	app, err := initializeApplication(buildInfo)
 	if err != nil {

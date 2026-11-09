@@ -907,3 +907,18 @@ func TestSettingService_StalePasskeyTrueWithoutConfigReportsDisabled(t *testing.
 	require.NoError(t, err)
 	require.False(t, settings.PasskeyEnabled)
 }
+
+func TestSettingService_RegistrationClosedOnFreshSetupPreservesExistingSetting(t *testing.T) {
+	ctx := context.Background()
+	fresh := &forwardedIPMigrationRepoStub{values: map[string]string{}}
+	svc := NewSettingService(fresh, &config.Config{})
+	require.NoError(t, svc.InitializeDefaultSettings(ctx))
+	require.Equal(t, "false", fresh.values[SettingKeyRegistrationEnabled])
+
+	existing := &forwardedIPMigrationRepoStub{values: map[string]string{
+		SettingKeyRegistrationEnabled: "true",
+	}}
+	svc = NewSettingService(existing, &config.Config{})
+	require.NoError(t, svc.InitializeDefaultSettings(ctx))
+	require.Equal(t, "true", existing.values[SettingKeyRegistrationEnabled])
+}

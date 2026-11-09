@@ -5,7 +5,6 @@
  */
 
 const EMBEDDED_USER_ID_QUERY_KEY = 'user_id'
-const EMBEDDED_AUTH_TOKEN_QUERY_KEY = 'token'
 const EMBEDDED_THEME_QUERY_KEY = 'theme'
 const EMBEDDED_LANG_QUERY_KEY = 'lang'
 const EMBEDDED_UI_MODE_QUERY_KEY = 'ui_mode'
@@ -16,7 +15,7 @@ const EMBEDDED_SRC_QUERY_KEY = 'src_url'
 export function buildEmbeddedUrl(
   baseUrl: string,
   userId?: number,
-  authToken?: string | null,
+  _authToken?: string | null,
   theme: 'light' | 'dark' = 'light',
   lang?: string,
 ): string {
@@ -26,9 +25,8 @@ export function buildEmbeddedUrl(
     if (userId) {
       url.searchParams.set(EMBEDDED_USER_ID_QUERY_KEY, String(userId))
     }
-    if (authToken) {
-      url.searchParams.set(EMBEDDED_AUTH_TOKEN_QUERY_KEY, authToken)
-    }
+    // Embedded sites authenticate independently; a login bearer is never a URL parameter.
+    url.searchParams.delete('token')
     url.searchParams.set(EMBEDDED_THEME_QUERY_KEY, theme)
     if (lang) {
       url.searchParams.set(EMBEDDED_LANG_QUERY_KEY, lang)
@@ -37,11 +35,11 @@ export function buildEmbeddedUrl(
     // Source tracking: let the embedded page know where it's being loaded from
     if (typeof window !== 'undefined') {
       url.searchParams.set(EMBEDDED_SRC_HOST_QUERY_KEY, window.location.origin)
-      url.searchParams.set(EMBEDDED_SRC_QUERY_KEY, window.location.href)
+      url.searchParams.set(EMBEDDED_SRC_QUERY_KEY, new URL(window.location.href).origin + new URL(window.location.href).pathname)
     }
     return url.toString()
   } catch {
-    return baseUrl
+    return ''
   }
 }
 

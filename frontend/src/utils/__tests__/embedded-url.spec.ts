@@ -37,7 +37,7 @@ describe('embedded-url', () => {
     const url = new URL(result)
     expect(url.searchParams.get('plan')).toBe('pro')
     expect(url.searchParams.get('user_id')).toBe('42')
-    expect(url.searchParams.get('token')).toBe('token-123')
+    expect(url.searchParams.has('token')).toBe(false)
     expect(url.searchParams.get('theme')).toBe('dark')
     expect(url.searchParams.get('lang')).toBe('zh-CN')
     expect(url.searchParams.get('ui_mode')).toBe('embedded')
@@ -56,12 +56,22 @@ describe('embedded-url', () => {
     expect(url.searchParams.has('lang')).toBe(false)
   })
 
-  it('returns original string for invalid url input', () => {
-    expect(buildEmbeddedUrl('not a url', 1, 'token')).toBe('not a url')
+  it('rejects invalid url input', () => {
+    expect(buildEmbeddedUrl('not a url', 1, 'token')).toBe('')
   })
 
   it('detects dark mode from document root class', () => {
     document.documentElement.classList.add('dark')
     expect(detectTheme()).toBe('dark')
+  })
+})
+
+
+describe('embedded URL credential boundary', () => {
+  it('strips legacy token fields and source query parameters', () => {
+    const result = buildEmbeddedUrl('https://pay.example.com/?token=old', 1, 'actual-bearer')
+    const url = new URL(result)
+    expect(url.searchParams.has('token')).toBe(false)
+    expect(result).not.toContain('actual-bearer')
   })
 })

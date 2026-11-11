@@ -59,7 +59,7 @@ func newRuntime(cfg Config, exporter sdktrace.SpanExporter) *Runtime {
 		// Preserve valid structured messages instead of SDK-truncating their JSON.
 		sdktrace.WithSpanLimits(sdktrace.SpanLimits{AttributeCountLimit: 64, EventCountLimit: 0, LinkCountLimit: 0, AttributeValueLengthLimit: 6*cfg.MaxBytes + 4096}),
 	)
-	r.tracer = r.provider.Tracer("sub2api.native-llm", trace.WithInstrumentationVersion("0.2.19-otel.1"))
+	r.tracer = r.provider.Tracer("sub2api.native-llm", trace.WithInstrumentationVersion("0.2.21-security.1"))
 	return r
 }
 

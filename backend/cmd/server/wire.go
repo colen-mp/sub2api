@@ -112,6 +112,7 @@ func provideCleanup(
 	billingCache *service.BillingCacheService,
 	usageRecordWorkerPool *service.UsageRecordWorkerPool,
 	balanceNotify *service.BalanceNotifyService,
+	larkQuotaAlerts *service.LarkQuotaAlertService,
 	digestSessions *service.DigestSessionStore,
 	subscriptionService *service.SubscriptionService,
 	oauth *service.OAuthService,
@@ -148,6 +149,12 @@ func provideCleanup(
 			{"DigestSessionStore", func() error {
 				if digestSessions != nil {
 					digestSessions.Close()
+				}
+				return nil
+			}},
+			{"LarkQuotaAlertService", func() error {
+				if larkQuotaAlerts != nil {
+					larkQuotaAlerts.Stop()
 				}
 				return nil
 			}},

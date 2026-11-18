@@ -2135,6 +2135,24 @@ func (s *RateLimitService) UpdateSessionWindow(ctx context.Context, account *Acc
 // utilization 与 reset 被动采样数据，合并为一次 Extra 写入。无数据时不写。
 func (s *RateLimitService) samplePassiveUsageFromHeaders(ctx context.Context, account *Account, headers http.Header) {
 	extraUpdates := make(map[string]any, 6)
+	// Alerts need a real utilization/reset pair from the same response, with a
+	// per-window stamp. Do not infer 100% from a generic rejected status/429.
+	for _, window := range []string{"5h", "7d"} {
+		prefix := "lark_quota_" + window
+		if headers.Get("anthropic-ratelimit-unified-"+window+"-utilization") != "" || headers.Get("anthropic-ratelimit-unified-"+window+"-reset") != "" {
+			extraUpdates[prefix+"_sampled_at"] = nil
+		}
+		util, utilErr := strconv.ParseFloat(headers.Get("anthropic-ratelimit-unified-"+window+"-utilization"), 64)
+		reset, resetErr := strconv.ParseInt(headers.Get("anthropic-ratelimit-unified-"+window+"-reset"), 10, 64)
+		if utilErr == nil && resetErr == nil && reset > 0 {
+			if reset > 1e11 {
+				reset /= 1000
+			}
+			extraUpdates[prefix+"_utilization"] = util
+			extraUpdates[prefix+"_reset"] = reset
+			extraUpdates[prefix+"_sampled_at"] = time.Now().UTC().Format(time.RFC3339)
+		}
+	}
 	// 5h utilization（0-1 小数），供 estimateSetupTokenUsage 使用
 	if utilStr := headers.Get("anthropic-ratelimit-unified-5h-utilization"); utilStr != "" {
 		if util, err := strconv.ParseFloat(utilStr, 64); err == nil {
@@ -2175,6 +2193,8 @@ func (s *RateLimitService) samplePassiveUsageFromHeaders(ctx context.Context, ac
 		extraUpdates["passive_usage_sampled_at"] = time.Now().UTC().Format(time.RFC3339)
 		if err := s.accountRepo.UpdateExtra(ctx, account.ID, extraUpdates); err != nil {
 			slog.Warn("passive_usage_update_failed", "account_id", account.ID, "error", err)
+		} else {
+			notifySubscriptionQuotaAlert(account.ID)
 		}
 	}
 }

@@ -51,6 +51,7 @@ func firstNonEmpty(values ...string) string {
 
 // SettingHandler 系统设置处理器
 type SettingHandler struct {
+	larkQuotaAlerts          *service.LarkQuotaAlertService
 	settingService           *service.SettingService
 	emailService             *service.EmailService
 	turnstileService         *service.TurnstileService

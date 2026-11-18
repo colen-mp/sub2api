@@ -574,6 +574,9 @@ func registerSettingsRoutes(admin *gin.RouterGroup, h *handler.Handlers, stepUpA
 	registerScopedAdminKeyRoutes(adminSettings, h, stepUpAuth)
 	{
 		adminSettings.GET("", h.Admin.Setting.GetSettings)
+		adminSettings.GET("/lark-quota-alerts", h.Admin.Setting.GetLarkQuotaSettings)
+		adminSettings.PUT("/lark-quota-alerts", h.Admin.Setting.UpdateLarkQuotaSettings)
+		adminSettings.POST("/lark-quota-alerts/test", h.Admin.Setting.TestLarkQuotaNotification)
 		adminSettings.PUT("", h.Admin.Setting.UpdateSettings)
 		adminSettings.POST("/test-smtp", h.Admin.Setting.TestSMTPConnection)
 		adminSettings.POST("/send-test-email", h.Admin.Setting.SendTestEmail)

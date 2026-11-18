@@ -1118,6 +1118,18 @@ func buildCodexUsageExtraUpdates(snapshot *OpenAICodexUsageSnapshot, fallbackNow
 
 	// 归一化到 5h/7d 规范字段
 	if normalized := snapshot.Normalize(); normalized != nil {
+		if normalized.Used5hPercent != nil || normalized.Reset5hSeconds != nil {
+			updates["codex_5h_sampled_at"] = nil
+		}
+		if normalized.Used7dPercent != nil || normalized.Reset7dSeconds != nil {
+			updates["codex_7d_sampled_at"] = nil
+		}
+		if normalized.Used5hPercent != nil && normalized.Reset5hSeconds != nil {
+			updates["codex_5h_sampled_at"] = baseTime.Format(time.RFC3339)
+		}
+		if normalized.Used7dPercent != nil && normalized.Reset7dSeconds != nil {
+			updates["codex_7d_sampled_at"] = baseTime.Format(time.RFC3339)
+		}
 		if normalized.Used5hPercent != nil {
 			updates["codex_5h_used_percent"] = *normalized.Used5hPercent
 		}
@@ -1173,6 +1185,7 @@ func (s *OpenAIGatewayService) updateCodexUsageSnapshot(ctx context.Context, acc
 		updateCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := s.accountRepo.UpdateExtra(updateCtx, accountID, updates); err == nil {
+			notifySubscriptionQuotaAlert(accountID)
 			notifyOpenAIAutoReset(accountID)
 		}
 	}()

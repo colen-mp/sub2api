@@ -986,6 +986,7 @@ var ProviderSet = wire.NewSet(
 	ProvidePaymentService,
 	ProvidePaymentOrderExpiryService,
 	ProvideBalanceNotifyService,
+	ProvideLarkQuotaAlertService,
 	ProvideChannelMonitorService,
 	ProvideChannelMonitorRunner,
 	NewChannelMonitorQuotaFetcher,
@@ -1092,4 +1093,11 @@ func ProvideClaudeResetCreditService(accounts AccountRepository, tokens *ClaudeT
 	s := NewClaudeResetCreditService(accounts, tokens, proxies, settings)
 	s.ConfigureRedemption(idem, locks)
 	return s
+}
+
+// ProvideLarkQuotaAlertService starts optional bounded subscription notifications.
+func ProvideLarkQuotaAlertService(settings SettingRepository, accounts AccountRepository, usage *AccountUsageService, encryptor SecretEncryptor, leases IdempotencyRepository, cfg *config.Config) *LarkQuotaAlertService {
+	svc := NewLarkQuotaAlertService(settings, accounts, usage, encryptor, leases, cfg)
+	svc.Start()
+	return svc
 }

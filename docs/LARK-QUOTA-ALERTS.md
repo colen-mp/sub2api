@@ -26,6 +26,8 @@ Webhook 和签名密钥使用既有 SecretEncryptor 加密存入 settings。服�
 
 HTTP 2xx 且 Lark 业务 `code=0` 表示机器人接口受理，不等同于最终群消息可见。远端已受理而本地超时、进程在发送后落库前退出，或落库失败等不确定情况下可能重复；有限重试也可能最终未投递。清空/关闭会阻止后续发送，已经开始的网络请求无法撤回。
 
-本功能在 fork 的 `feature/lark-quota-alerts` 开发；同一个 OpenSpec 变更由 ai-gateway 的 `add-lark-subscription-quota-alerts` 管理。ai-gateway 从锁定官方归档叠加 `integration.patch` 和 `overlay` 重建，维护镜像为 `sub2api-otel:0.2.21-lark.1`，包含此前遥测与安全补丁。配置和状态复用已有数据库，无需新增数据库迁移。
+本功能在 fork 的 `feature/lark-quota-alerts` 开发；同一个 OpenSpec 变更由 ai-gateway 的 `add-lark-subscription-quota-alerts` 管理。ai-gateway 从锁定官方归档叠加 `integration.patch` 和 `overlay` 重建，维护镜像为 `sub2api-otel:0.2.24-lark.1`，包含此前遥测与安全补丁。配置和状态复用已有数据库，无需新增数据库迁移。
 
 本地测试使用合成数据和 mock HTTP。真实机器人配置、消息投递、现有实例升级及生产验收需另行执行。
+
+2026-11-24：本分支同步官方 v0.2.24，保留 Lark 预警、遥测与安全补丁；升级记录由 ai-gateway 的 `sync-lark-quota-alerts-v024` 管理。预警自身不新增迁移，v0.2.24 的既有上游迁移仍需在部署前评估和备份。
